@@ -74,22 +74,37 @@ func sendLines(client *sxutil.SXServiceClient, id int, label string, fname strin
 
 	fcs := jsonData.Features
 	//	type := jsonData.Type
-	lines := make([]*geo.Line, 0, len(fcs))
-	for i := 0; i < len(fcs); i++ {
+	fclen := len(fcs)
+	lines := make([]*geo.Line, 0, fclen)
+	log.Printf("Fetures: %d", fclen)
+	for i := 0; i < fclen; i++ {
 		geom := fcs[i].Geometry
 		//		log.Printf("MulitiLine %d: %v", i, geom.)
 		if geom.IsMultiLineString() {
 			coord := geom.MultiLineString[0]
 			ll := len(coord)
 			for j := 0; j < ll-1; j++ {
-				//				log.Printf("MulitiLine %d %d %v", i, j, coord[j])
-				fr := []float32{float32(coord[j][0]), float32(coord[j][1])}
-				to := []float32{float32(coord[j+1][0]), float32(coord[j+1][1])}
 				lines = append(lines, &geo.Line{
-					From: fr,
-					To:   to,
+					From: []float64{coord[j][0], coord[j][1]},
+					To:   []float64{coord[j+1][0], coord[j+1][1]},
 				})
 			}
+		}
+		if geom.IsMultiPolygon() {
+			//			log.Printf("MultiPolygon %d: %v", i, geom)
+			coord := geom.MultiPolygon[0][0]
+			ll := len(coord)
+			for j := 0; j < ll-1; j++ {
+				lines = append(lines, &geo.Line{
+					From: []float64{coord[j][0], coord[j][1]},
+					To:   []float64{coord[j+1][0], coord[j+1][1]},
+				})
+			}
+			lines = append(lines, &geo.Line{
+				From: []float64{coord[ll-1][0], coord[ll-1][1]},
+				To:   []float64{coord[0][0], coord[0][1]},
+			})
+
 		}
 
 	}
