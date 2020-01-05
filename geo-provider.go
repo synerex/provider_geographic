@@ -9,6 +9,8 @@ import (
 	"log"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/paulmach/orb/geojson"
+
 	geo "github.com/synerex/proto_geographic"
 	pb "github.com/synerex/synerex_api"
 	pbase "github.com/synerex/synerex_proto"
@@ -42,7 +44,56 @@ func sendFile(client *sxutil.SXServiceClient, id int, label string, fname string
 
 	cont := pb.Content{Entity: out}
 	smo := sxutil.SupplyOpts{
-		Name:  "GeoData",
+		Name:  "GeoJson",
+		Cdata: &cont,
+	}
+
+	_, nerr := client.NotifySupply(&smo)
+	if nerr != nil { // connection failuer with current client
+		log.Printf("Connection failure", nerr)
+	}
+}
+
+func loadGeoJSON(fname string) *geojson.FeatureCollection, {
+	bytes, err := ioutil.ReadFile(fname)
+	if err != nil {
+		log.Print("Can't read file:", err)
+		panic("load json")
+	}
+
+	fc, _ := geojson.UnmarshalFeatureCollection(bytes)
+
+	return fc
+}
+
+func sendLines(client *sxutil.SXServiceClient, id int, label string, fname string) {
+
+	jsonData := loadGeoJSON(fname)
+
+	fcs := jsonData.Features
+	lines = make([]geo.)
+	for(i = 0; i< len(fcs); i++){
+		geom :=  fcs[i].geometory
+		if geom.type = "MultiLineString"{
+			lines
+
+		}
+	}
+
+
+	geodata := geo.Lines{
+		Lines:  lines ,
+		Width: 1,
+		Color: [128,128,255],
+	}
+
+
+
+	out, _ := proto.Marshal(&geodata) // TODO: handle error
+
+	cont := pb.Content{Entity: out}
+	smo := sxutil.SupplyOpts{
+		Name:  "GeoJson",
 		Cdata: &cont,
 	}
 
