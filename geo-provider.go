@@ -9,7 +9,8 @@ import (
 	"log"
 
 	"github.com/golang/protobuf/proto"
-	//	"github.com/paulmach/orb/geojson"
+	"github.com/go-spatial/proj"
+
 	geojson "github.com/paulmach/go.geojson"
 
 	geo "github.com/synerex/proto_geography"
@@ -23,17 +24,78 @@ var (
 	geoJsonFile     = flag.String("geojson", "", "GeoJson file")
 	label           = flag.String("label", "", "Label of data")
 	lines           = flag.String("lines", "", "geojson for lines")
+	webmercator		= flag.Bool("webmercator", false, "if set, lat, lon projection is in webmercator")
 	idnum           = flag.Int("id", 1, "ID of data")
 	sxServerAddress string
 )
 
-func sendFile(client *sxutil.SXServiceClient, id int, label string, fname string) {
+func convertGeoJsonMercator(bytes []byte) []byte{
+	jsonData, _ := geojson.UnmarshalFeatureCollection(bytes)
+	//	type := jsonData.Type
+	fclen := len(jsonData.Features)
+	fmt.Printf("convertGeoJsonMercator! %d\n",fclen)
+
+	for i := 0; i < fclen; i++ {
+		geom := jsonData.Features[i].Geometry
+//		fmt.Printf("%#v", geom)
+		if geom.IsMultiLineString() {
+			log.Printf("MulitiLine %d: %#v", i, geom)
+			coord := geom.MultiLineString[0]
+			ll := len(coord)
+			for j := 0; j < ll; j++ {
+				latlon :=webmercator2latlon(coord[j][0], coord[j][1])
+				geom.MultiLineString[0][j][0]=latlon[0]
+				geom.MultiLineString[0][j][1]=latlon[1]
+			}
+
+		}
+		if geom.IsMultiPolygon() {
+			coord := geom.MultiPolygon[0][0]
+			ll := len(coord)
+			log.Printf("MulitPolygon %d", ll)
+			for j := 0; j < ll; j++ {
+				latlon :=webmercator2latlon(coord[j][0], coord[j][1])
+//				fmt.Printf("%f,%f -> #%v \n", coord[j][0],coord[j][1], latlon)
+				geom.MultiPolygon[0][0][j][0]=latlon[0]
+				geom.MultiPolygon[0][0][j][1]=latlon[1]
+			}
+
+		}
+		if geom.IsPolygon() {
+			coord := geom.Polygon[0]
+			ll := len(coord)
+			log.Printf("Polygon Len %d", ll)
+			for j := 0; j < ll; j++ {
+//				log.Printf("MulitiPolygon %d: %#v", i, geom)
+				latlon :=webmercator2latlon(coord[j][0], coord[j][1])
+//				fmt.Printf("%f,%f -> #%v \n", coord[j][0],coord[j][1], latlon)
+				geom.Polygon[0][j][0]=latlon[0]
+				geom.Polygon[0][j][1]=latlon[1]
+			}
+
+		}
+
+	}
+
+	bt , _ := jsonData.MarshalJSON()
+
+	return bt
+}
+
+
+func sendGeoJsonFile(client *sxutil.SXServiceClient, id int, label string, fname string) {
 
 	bytes, err := ioutil.ReadFile(fname)
 	if err != nil {
 		log.Print("Can't read file:", err)
 		panic("load json")
 	}
+
+
+	if *webmercator {
+		bytes = convertGeoJsonMercator(bytes)
+	}
+
 
 	geodata := geo.Geo{
 		Type:  "geojson",
@@ -68,6 +130,13 @@ func loadGeoJSON(fname string) *geojson.FeatureCollection {
 	return fc
 }
 
+func webmercator2latlon(x float64, y float64) []float64{
+	var xy = []float64{x, y}
+	latlon, _ := proj.Inverse(proj.WebMercator, xy)
+	return latlon
+}
+
+
 func sendLines(client *sxutil.SXServiceClient, id int, label string, fname string) {
 
 	jsonData := loadGeoJSON(fname)
@@ -84,10 +153,19 @@ func sendLines(client *sxutil.SXServiceClient, id int, label string, fname strin
 			coord := geom.MultiLineString[0]
 			ll := len(coord)
 			for j := 0; j < ll-1; j++ {
-				lines = append(lines, &geo.Line{
-					From: []float64{coord[j][0], coord[j][1]},
-					To:   []float64{coord[j+1][0], coord[j+1][1]},
-				})
+
+				if *webmercator {
+
+					lines = append(lines, &geo.Line{
+						From: webmercator2latlon(coord[j][0], coord[j][1]),
+						To:   webmercator2latlon(coord[j+1][0], coord[j+1][1]),
+					})					
+				}else{
+					lines = append(lines, &geo.Line{
+						From: []float64{coord[j][0], coord[j][1]},
+						To:   []float64{coord[j+1][0], coord[j+1][1]},
+					})
+				}
 			}
 		}
 		if geom.IsMultiPolygon() {
@@ -95,16 +173,31 @@ func sendLines(client *sxutil.SXServiceClient, id int, label string, fname strin
 			coord := geom.MultiPolygon[0][0]
 			ll := len(coord)
 			for j := 0; j < ll-1; j++ {
+				if *webmercator {
+					lines = append(lines, &geo.Line{
+						From: webmercator2latlon(coord[j][0], coord[j][1]),
+						To:   webmercator2latlon(coord[j+1][0], coord[j+1][1]),
+					})					
+				}else{
+					lines = append(lines, &geo.Line{
+						From: []float64{coord[j][0], coord[j][1]},
+						To:   []float64{coord[j+1][0], coord[j+1][1]},
+					})
+				}
+			}
+			if *webmercator {
+
 				lines = append(lines, &geo.Line{
-					From: []float64{coord[j][0], coord[j][1]},
-					To:   []float64{coord[j+1][0], coord[j+1][1]},
+					From: webmercator2latlon(coord[ll-1][0], coord[ll-1][1]),
+					To:   webmercator2latlon(coord[0][0], coord[0][1]),
+				})					
+			}else{
+
+				lines = append(lines, &geo.Line{
+					From: []float64{coord[ll-1][0], coord[ll-1][1]},
+					To:   []float64{coord[0][0], coord[0][1]},
 				})
 			}
-			lines = append(lines, &geo.Line{
-				From: []float64{coord[ll-1][0], coord[ll-1][1]},
-				To:   []float64{coord[0][0], coord[0][1]},
-			})
-
 		}
 
 	}
@@ -147,7 +240,7 @@ func main() {
 	sclient := sxutil.NewSXServiceClient(client, pbase.GEOGRAPHIC_SVC, argJSON)
 
 	if *geoJsonFile != "" {
-		sendFile(sclient, *idnum, *label, *geoJsonFile)
+		sendGeoJsonFile(sclient, *idnum, *label, *geoJsonFile)
 	}
 	if *lines != "" {
 		sendLines(sclient, *idnum, *label, *lines)
