@@ -41,6 +41,10 @@ github.com/synerex/proto_geography v0.0.6 h1:vaTNZnetaS4PRvVRDA568nR4WXK9O/zJGgm
 github.com/synerex/proto_geography v0.0.6/go.mod h1:Inamj23t+Gu0wIwOvlUoMHCfF/07SjLBMvIcXJmRRS0=
 github.com/synerex/proto_geography v0.0.7 h1:4lxWv0f5Z/Q2YX8Yxb3+efc+VneOFo54Sl56TWz4uJE=
 github.com/synerex/proto_geography v0.0.7/go.mod h1:Inamj23t+Gu0wIwOvlUoMHCfF/07SjLBMvIcXJmRRS0=
+github.com/synerex/proto_geography v0.3.0 h1:1EirwPfRvkrPzoA98fjSYvOd8rTr56C+nGiYs7J9v6k=
+github.com/synerex/proto_geography v0.3.0/go.mod h1:Inamj23t+Gu0wIwOvlUoMHCfF/07SjLBMvIcXJmRRS0=
+github.com/synerex/proto_geography v0.3.1 h1:lgegRSdaYty8KrRPdHzmPcIZ/XnVyZJU/0OvkzeCoxo=
+github.com/synerex/proto_geography v0.3.1/go.mod h1:Inamj23t+Gu0wIwOvlUoMHCfF/07SjLBMvIcXJmRRS0=
 github.com/synerex/synerex_api v0.2.1 h1:2OTBiOBUjCYtjO4KzTPq1szU4oJDCgKVovcG1a/4TTw=
 github.com/synerex/synerex_api v0.2.1/go.mod h1:sVqiujIdRBLEtKGw4pKjNK3SPgK0ymTlLWL8Drf266A=
 github.com/synerex/synerex_nodeapi v0.4.6 h1:a0sQuToEitSBzHDvuAB/qkRHzzrBJCCCgbxGEJ9hvco=

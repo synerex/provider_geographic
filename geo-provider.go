@@ -25,6 +25,9 @@ var (
 	label           = flag.String("label", "", "Label of data")
 	lines           = flag.String("lines", "", "geojson for lines")
 	viewState       = flag.String("viewState", "", "set ViewState as lat,lon,zoom")
+	bearing         = flag.String("bearing", "", "set bearing")
+	pitch           = flag.String("pitch", "", "set pitch")
+	clearMoves      = flag.String("clearMoves", "", "moves data clear message")
 	webmercator     = flag.Bool("webmercator", false, "if set, lat, lon projection is in webmercator")
 	idnum           = flag.Int("id", 1, "ID of data")
 	sxServerAddress string
@@ -247,6 +250,59 @@ func sendLines(client *sxutil.SXServiceClient, id int, label string, fname strin
 	}
 }
 
+func sendBearing(client *sxutil.SXServiceClient, str string) {
+	bearing0 := 0.0
+
+	fmt.Sscanf(str, "%f", &bearing0)
+	vsd := geo.Bearing{
+		Bearing: bearing0,
+	}
+	out, _ := proto.Marshal(&vsd) // TODO: handle error
+	cont := pb.Content{Entity: out}
+	smo := sxutil.SupplyOpts{
+		Name:  "Bearing",
+		Cdata: &cont,
+	}
+	_, nerr := client.NotifySupply(&smo)
+	if nerr != nil { // connection failuer with current client
+		log.Printf("Connection failure", nerr)
+	}
+}
+func sendPitch(client *sxutil.SXServiceClient, str string) {
+	pitch0 := 0.0
+
+	fmt.Sscanf(str, "%f", &pitch0)
+	vsd := geo.Pitch{
+		Pitch: pitch0,
+	}
+	out, _ := proto.Marshal(&vsd) // TODO: handle error
+	cont := pb.Content{Entity: out}
+	smo := sxutil.SupplyOpts{
+		Name:  "Pitch",
+		Cdata: &cont,
+	}
+	_, nerr := client.NotifySupply(&smo)
+	if nerr != nil { // connection failuer with current client
+		log.Printf("Connection failure", nerr)
+	}
+}
+func sendClearMoves(client *sxutil.SXServiceClient, str string) {
+
+	vsd := geo.ClearMoves{
+		Message: str,
+	}
+	out, _ := proto.Marshal(&vsd) // TODO: handle error
+	cont := pb.Content{Entity: out}
+	smo := sxutil.SupplyOpts{
+		Name:  "ClearMoves",
+		Cdata: &cont,
+	}
+	_, nerr := client.NotifySupply(&smo)
+	if nerr != nil { // connection failuer with current client
+		log.Printf("Connection failure", nerr)
+	}
+}
+
 func main() {
 	flag.Parse()
 	go sxutil.HandleSigInt()
@@ -273,6 +329,18 @@ func main() {
 	}
 	if *viewState != "" {
 		sendViewState(sclient, *viewState)
+	}
+
+	if *bearing != "" {
+		sendBearing(sclient, *bearing)
+	}
+
+	if *pitch != "" {
+		sendPitch(sclient, *pitch)
+	}
+
+	if *clearMoves != "" {
+		sendClearMoves(sclient, *clearMoves)
 	}
 
 	sxutil.CallDeferFunctions() // cleanup!
