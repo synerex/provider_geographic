@@ -304,6 +304,7 @@ func sendClearMoves(client *sxutil.SXServiceClient, str string) {
 }
 
 func main() {
+	log.Printf("Geo-Provider(%s) built %s sha1 %s", sxutil.GitVer, sxutil.BuildTime, sxutil.Sha1Ver)
 	flag.Parse()
 	go sxutil.HandleSigInt()
 	sxutil.RegisterDeferFunction(sxutil.UnRegisterNode)
