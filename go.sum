@@ -52,6 +52,8 @@ github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/synerex/proto_geography v0.3.1 h1:lgegRSdaYty8KrRPdHzmPcIZ/XnVyZJU/0OvkzeCoxo=
 github.com/synerex/proto_geography v0.3.1/go.mod h1:Inamj23t+Gu0wIwOvlUoMHCfF/07SjLBMvIcXJmRRS0=
+github.com/synerex/proto_geography v0.4.1 h1:62sc2WcPLYSxT6CLKIAubZzUKa65o01lUxJJYVHPusQ=
+github.com/synerex/proto_geography v0.4.1/go.mod h1:Inamj23t+Gu0wIwOvlUoMHCfF/07SjLBMvIcXJmRRS0=
 github.com/synerex/synerex_api v0.3.1 h1:fmxQhVaag/OUJELNoBxhebZ5Z23/cgfCNdYGl9XUY3g=
 github.com/synerex/synerex_api v0.3.1/go.mod h1:sVqiujIdRBLEtKGw4pKjNK3SPgK0ymTlLWL8Drf266A=
 github.com/synerex/synerex_nodeapi v0.5.3 h1:qBpHwys9jPzhn0M50MSckFWKb6tps23M8q5TJj/CsNw=

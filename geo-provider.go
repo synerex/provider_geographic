@@ -22,6 +22,8 @@ import (
 var (
 	nodesrv         = flag.String("nodesrv", "127.0.0.1:9990", "Node ID Server")
 	geoJsonFile     = flag.String("geojson", "", "GeoJson file")
+	topLabel        = flag.String("topLabel", "", "Top Label Text")
+	topStyle        = flag.String("topStyle", "", "Top Label Style")
 	label           = flag.String("label", "", "Label of data")
 	lines           = flag.String("lines", "", "geojson for lines")
 	viewState       = flag.String("viewState", "", "set ViewState as lat,lon,zoom")
@@ -303,6 +305,24 @@ func sendClearMoves(client *sxutil.SXServiceClient, str string) {
 	}
 }
 
+func sendTopLabel(client *sxutil.SXServiceClient, label string, style string) {
+	msg := geo.TopTextLabel{
+		Label: label,
+		Style: style,
+	}
+
+	out, _ := proto.Marshal(&msg) // TODO: handle error
+	cont := pb.Content{Entity: out}
+	smo := sxutil.SupplyOpts{
+		Name:  "TopTextLabel",
+		Cdata: &cont,
+	}
+	_, nerr := client.NotifySupply(&smo)
+	if nerr != nil { // connection failuer with current client
+		log.Printf("Connection failure", nerr)
+	}
+}
+
 func main() {
 	log.Printf("Geo-Provider(%s) built %s sha1 %s", sxutil.GitVer, sxutil.BuildTime, sxutil.Sha1Ver)
 	flag.Parse()
@@ -342,6 +362,10 @@ func main() {
 
 	if *clearMoves != "" {
 		sendClearMoves(sclient, *clearMoves)
+	}
+
+	if *topLabel != "" {
+		sendTopLabel(sclient, *topLabel, *topStyle)
 	}
 
 	sxutil.CallDeferFunctions() // cleanup!

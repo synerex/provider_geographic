@@ -8,7 +8,7 @@ require (
 	github.com/paulmach/go.geojson v1.4.0
 	github.com/shirou/gopsutil v2.20.4+incompatible // indirect
 	github.com/stretchr/testify v1.5.1 // indirect
-	github.com/synerex/proto_geography v0.3.1
+	github.com/synerex/proto_geography v0.4.1
 	github.com/synerex/synerex_api v0.3.1
 	github.com/synerex/synerex_proto v0.1.6
 	github.com/synerex/synerex_sxutil v0.4.10
