@@ -26,7 +26,7 @@ var (
 	topStyle        = flag.String("topStyle", "", "Top Label Style")
 	label           = flag.String("label", "", "Label of data")
 	lines           = flag.String("lines", "", "geojson for lines")
-	viewState       = flag.String("viewState", "", "set ViewState as lat,lon,zoom")
+	viewState       = flag.String("viewState", "", "set ViewState as lat,lon,zoom,pitch")
 	bearing         = flag.String("bearing", "", "set bearing")
 	pitch           = flag.String("pitch", "", "set pitch")
 	clearMoves      = flag.String("clearMoves", "", "moves data clear message")
@@ -92,14 +92,14 @@ func convertGeoJsonMercator(bytes []byte) []byte {
 func sendViewState(client *sxutil.SXServiceClient, str string) {
 	lat := 34.8592285
 	lon := 136.8163486
-	zoom := 10
-	pitch := 0.0
+	zoom := -1.0  // no change
+	pitch := -1.0 // no change
 
-	fmt.Sscanf(str, "%f,%f,%d,%f", &lat, &lon, &zoom, &pitch)
+	fmt.Sscanf(str, "%f,%f,%f,%f", &lat, &lon, &zoom, &pitch)
 	vsd := geo.ViewState{
 		Lat:   lat,
 		Lon:   lon,
-		Zoom:  int32(zoom),
+		Zoom:  zoom,
 		Pitch: pitch,
 	}
 	out, _ := proto.Marshal(&vsd) // TODO: handle error
