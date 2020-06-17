@@ -29,7 +29,9 @@ var (
 	viewState       = flag.String("viewState", "", "set ViewState as lat,lon,zoom,pitch")
 	bearing         = flag.String("bearing", "", "set bearing")
 	pitch           = flag.String("pitch", "", "set pitch")
+	duration        = flag.Float64("duration", 0.0, "animation duration(sec) for Pitch,Bearing,ViewState")
 	clearMoves      = flag.String("clearMoves", "", "moves data clear message")
+	harmovis        = flag.String("harmovis", "", "harmovis json config")
 	webmercator     = flag.Bool("webmercator", false, "if set, lat, lon projection is in webmercator")
 	idnum           = flag.Int("id", 1, "ID of data")
 	sxServerAddress string
@@ -89,14 +91,13 @@ func convertGeoJsonMercator(bytes []byte) []byte {
 	return bt
 }
 
-func sendViewState(client *sxutil.SXServiceClient, str string) {
+func sendViewState(client *sxutil.SXServiceClient, str string, duration float64) {
 	lat := 34.8592285
 	lon := 136.8163486
-	zoom := -1.0    // no change
-	pitch := -1.0   // no change
-	duration := 0.0 // for animation
+	zoom := -1.0  // no change
+	pitch := -1.0 // no change
 
-	fmt.Sscanf(str, "%f,%f,%f,%f,%f", &lat, &lon, &zoom, &pitch, &duration)
+	fmt.Sscanf(str, "%f,%f,%f,%f", &lat, &lon, &zoom, &pitch)
 	vsd := geo.ViewState{
 		Lat:      lat,
 		Lon:      lon,
@@ -117,7 +118,6 @@ func sendViewState(client *sxutil.SXServiceClient, str string) {
 }
 
 func sendGeoJsonFile(client *sxutil.SXServiceClient, id int, label string, fname string) {
-
 	bytes, err := ioutil.ReadFile(fname)
 	if err != nil {
 		log.Print("Can't read file:", err)
@@ -254,12 +254,13 @@ func sendLines(client *sxutil.SXServiceClient, id int, label string, fname strin
 	}
 }
 
-func sendBearing(client *sxutil.SXServiceClient, str string) {
+func sendBearing(client *sxutil.SXServiceClient, str string, duration float64) {
 	bearing0 := 0.0
 
 	fmt.Sscanf(str, "%f", &bearing0)
 	vsd := geo.Bearing{
-		Bearing: bearing0,
+		Bearing:  bearing0,
+		Duration: duration,
 	}
 	out, _ := proto.Marshal(&vsd) // TODO: handle error
 	cont := pb.Content{Entity: out}
@@ -272,12 +273,13 @@ func sendBearing(client *sxutil.SXServiceClient, str string) {
 		log.Printf("Connection failure", nerr)
 	}
 }
-func sendPitch(client *sxutil.SXServiceClient, str string) {
+func sendPitch(client *sxutil.SXServiceClient, str string, duration float64) {
 	pitch0 := 0.0
 
 	fmt.Sscanf(str, "%f", &pitch0)
 	vsd := geo.Pitch{
-		Pitch: pitch0,
+		Pitch:    pitch0,
+		Duration: duration,
 	}
 	out, _ := proto.Marshal(&vsd) // TODO: handle error
 	cont := pb.Content{Entity: out}
@@ -325,6 +327,23 @@ func sendTopLabel(client *sxutil.SXServiceClient, label string, style string) {
 	}
 }
 
+func sendHarmoVIS(client *sxutil.SXServiceClient, conf string) {
+	msg := geo.HarmoVIS{
+		ConfJson: conf,
+	}
+
+	out, _ := proto.Marshal(&msg) // TODO: handle error
+	cont := pb.Content{Entity: out}
+	smo := sxutil.SupplyOpts{
+		Name:  "HarmoVIS",
+		Cdata: &cont,
+	}
+	_, nerr := client.NotifySupply(&smo)
+	if nerr != nil { // connection failuer with current client
+		log.Printf("Connection failure", nerr)
+	}
+}
+
 func main() {
 	log.Printf("Geo-Provider(%s) built %s sha1 %s", sxutil.GitVer, sxutil.BuildTime, sxutil.Sha1Ver)
 	flag.Parse()
@@ -351,15 +370,15 @@ func main() {
 		sendLines(sclient, *idnum, *label, *lines)
 	}
 	if *viewState != "" {
-		sendViewState(sclient, *viewState)
+		sendViewState(sclient, *viewState, *duration)
 	}
 
 	if *bearing != "" {
-		sendBearing(sclient, *bearing)
+		sendBearing(sclient, *bearing, *duration)
 	}
 
 	if *pitch != "" {
-		sendPitch(sclient, *pitch)
+		sendPitch(sclient, *pitch, *duration)
 	}
 
 	if *clearMoves != "" {
@@ -368,6 +387,10 @@ func main() {
 
 	if *topLabel != "" {
 		sendTopLabel(sclient, *topLabel, *topStyle)
+	}
+
+	if *harmovis != "" {
+		sendHarmoVIS(sclient, *harmovis)
 	}
 
 	sxutil.CallDeferFunctions() // cleanup!
