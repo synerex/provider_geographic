@@ -363,6 +363,10 @@ func main() {
 	argJSON := fmt.Sprintf("{Client:GeoService}")
 	sclient := sxutil.NewSXServiceClient(client, pbase.GEOGRAPHIC_SVC, argJSON)
 
+	if *harmovis != "" {
+		sendHarmoVIS(sclient, *harmovis)
+	}
+
 	if *geoJsonFile != "" {
 		sendGeoJsonFile(sclient, *idnum, *label, *geoJsonFile)
 	}
@@ -387,10 +391,6 @@ func main() {
 
 	if *topLabel != "" {
 		sendTopLabel(sclient, *topLabel, *topStyle)
-	}
-
-	if *harmovis != "" {
-		sendHarmoVIS(sclient, *harmovis)
 	}
 
 	sxutil.CallDeferFunctions() // cleanup!
