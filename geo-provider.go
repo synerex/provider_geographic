@@ -90,14 +90,14 @@ func convertGeoJsonMercator(bytes []byte) []byte {
 func sendViewState(client *sxutil.SXServiceClient, str string) {
 	lat := 34.8592285
 	lon := 136.8163486
-	zoom := 10
+	zoom := 10.0
 	pitch := 0.0
 
-	fmt.Sscanf(str, "%f,%f,%d,%f", &lat, &lon, &zoom, &pitch)
+	fmt.Sscanf(str, "%f,%f,%f,%f", &lat, &lon, &zoom, &pitch)
 	vsd := geo.ViewState{
 		Lat:   lat,
 		Lon:   lon,
-		Zoom:  int32(zoom),
+		Zoom:  zoom,
 		Pitch: pitch,
 	}
 	out, _ := proto.Marshal(&vsd) // TODO: handle error
